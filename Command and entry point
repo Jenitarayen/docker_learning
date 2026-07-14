@@ -1,0 +1,32 @@
+Command and entry point (difference between cmd and entry point in docker files)
+
+Dockerfiles for a few commonly used Docker Images are given in the /root (current) directory. Inspect them and try to answer the questions in the subsequent tasks.
+1.What is the ENTRYPOINT configured on the mysql image Dockerfile?
+
+root@docker-host ~ ➜  cat Dockerfile-mysql | grep ENTRYPOINT
+# Optional custom entrypoint (comment together with ENTRYPOINT below once you decide to build)
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+2.What is the CMD configured on the wordpress image?
+
+root@docker-host ~ ➜  cat Dockerfile-wordpress | grep CMD
+CMD ["apache2-foreground"]
+
+3.What is the final command run at startup when the wordpress image is run?
+Consider both ENTRYPOINT and CMD instructions.
+
+root@docker-host ~ ➜  cat Dockerfile-wordpress | grep CMD
+CMD ["apache2-foreground"]
+
+root@docker-host ~ ➜  cat Dockerfile-wordpress | grep ENTRYPOINT
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+4.Which command runs at startup when the ubuntu image starts?
+root@docker-host ~ ➜  cat Dockerfile-ubuntu | grep CMD
+CMD ["bash"]
+
+5.Run an instance of the ubuntu image that executes the sleep 1000 command at startup.
+
+Note: Run it in detached mode.
+root@docker-host ~ ➜  docker run -d  ubuntu sleep 1000
+0050d9474acc771efbf2054f4790d24ae5e9ad58cc2a6565363b6b6d891dce59
