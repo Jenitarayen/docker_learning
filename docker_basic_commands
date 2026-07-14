@@ -1,0 +1,176 @@
+1.Docker. Version?
+root@docker-host ~ ➜  docker version
+Client: Docker Engine - Community
+ Version:           29.4.3
+ API version:       1.54
+ Go version:        go1.26.2
+ Git commit:        055a478
+ Built:             Wed May  6 17:07:36 2026
+ OS/Arch:           linux/amd64
+ Context:           default
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          29.4.3
+  API version:      1.54 (minimum version 1.40)
+  Go version:       go1.26.2
+  Git commit:       56be731
+  Built:            Wed May  6 17:07:36 2026
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v2.2.3
+  GitCommit:        77c84241c7cbdd9b4eca2591793e3d4f4317c590
+ runc:
+  Version:          1.3.5
+  GitCommit:        v1.3.5-0-g488fc13e
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+
+2.How many containers are running on this host?
+docker ps -q | wc -l
+root@docker-host ~ ➜  docker ps -q | wc -l
+0
+
+3.How many images are available on this host?
+docker image ls -q | wc -l
+
+root@docker-host ~ ➜  docker image ls -q | wc -l
+9
+
+4.Run a container using the redis image
+
+NOTE: Run the container in detached mode if you don't want the container to take over your current terminal. This allows your terminal to remain free for other commands, or you can open a new terminal to run the command.
+
+root@docker-host ~ ➜  docker run -d redis
+40e374b390c7d0e27494b9acf49e430765a0d8cad44c8b108ec2f93fbddb0d25
+
+root@docker-host ~ ➜  docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS      NAMES
+40e374b390c7   redis     "docker-entrypoint.s…"   18 seconds ago   Up 15 seconds   6379/tcp   quirky_kalam
+
+5.Stop the container you just created!
+root@docker-host ~ ➜  docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS      NAMES
+40e374b390c7   redis     "docker-entrypoint.s…"   7 minutes ago   Up 7 minutes   6379/tcp   quirky_kalam
+
+root@docker-host ~ ➜  docker stop 40e374b390c7
+40e374b390c7
+
+6.How many containers are RUNNING on this host now?
+
+root@docker-host ~ ➜  docker ps -q | wc -l
+0
+
+7.How many containers are PRESENT on the host now?
+Include both Running and Not Running ones.
+
+root@docker-host ~ ➜  docker ps -aq | wc -l
+6
+
+8.What is the image used to run the nginx-1 container?
+
+root@docker-host ~ ➜  docker inspect -f '{{.Config.Image}}' nginx-1
+nginx:alpine
+
+9.What is the name of the container created using the ubuntu image?
+root@docker-host ~ ➜  docker ps -a
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS                      PORTS     NAMES
+26deeb83dc77   alpine         "/bin/sh"                9 minutes ago    Exited (0) 9 minutes ago              laughing_tharp
+4afd05f57100   alpine         "sleep 1000"             9 minutes ago    Up 9 minutes                          wonderful_yalow
+4231d5c4c1d5   nginx:alpine   "/docker-entrypoint.…"   9 minutes ago    Up 9 minutes                80/tcp    nginx-2
+887d5321fbdb   nginx:alpine   "/docker-entrypoint.…"   9 minutes ago    Up 9 minutes                80/tcp    nginx-1
+70e34720c798   ubuntu         "sleep 1000"             9 minutes ago    Up 9 minutes                          awesome_northcut
+57e5fc5a3836   redis          "docker-entrypoint.s…"   11 minutes ago   Exited (0) 11 minutes ago     
+
+10.What is the ID of the container that uses the alpine image and is not running?
+
+root@docker-host ~ ➜  docker ps -a --filter ancestor=alpine --filter status=exited
+CONTAINER ID   IMAGE     COMMAND     CREATED          STATUS                      PORTS     NAMES
+26deeb83dc77   alpine    "/bin/sh"   11 minutes ago   Exited (0) 11 minutes ago             laughing_tharp
+
+11.What is the state of the stopped alpine container?
+
+root@docker-host ~ ➜  docker inspect -f '{{.State.Status}}' $(docker ps -aq --filter ancestor=alpine)
+exited
+running
+
+12.Delete all containers from the Docker Host (both running and not running ones).
+
+Remember you may have to stop containers before deleting them.
+root@docker-host ~ ➜  docker stop $(docker ps -q)
+4afd05f57100
+4231d5c4c1d5
+887d5321fbdb
+70e34720c798
+
+root@docker-host ~ ➜  docker rm -f $(docker ps -aq)
+26deeb83dc77
+4afd05f57100
+4231d5c4c1d5
+887d5321fbdb
+70e34720c798
+57e5fc5a3836
+
+13.Delete the ubuntu image.
+
+root@docker-host ~ ➜  docker rmi ubuntu
+Untagged: ubuntu:latest
+Deleted: sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64
+
+
+14.You are required to pull a docker image, which will be used to run a container later. Pull the image nginx:1.28-alpine.
+
+
+root@docker-host ~ ➜  docker pull nginx:1.28-alpine
+1.28-alpine: Pulling from library/nginx
+d631a49fb4f7: Pull complete 
+589002ba0eae: Pull complete 
+8f7c784e2471: Pull complete 
+0151c82f84a9: Pull complete 
+e914c6e98e37: Pull complete 
+98104829f3fe: Pull complete 
+44fa0a5a779f: Pull complete 
+1d9cbdb003be: Pull complete 
+f2baa5b25d86: Download complete 
+8654f8d1249e: Download complete 
+Digest: sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+Status: Downloaded newer image for nginx:1.28-alpine
+docker.io/library/nginx:1.28-alpine
+
+15.Run a container using the image name nginx:1.28-alpine (not the image ID) and name it webapp.
+
+Has the container been created?
+
+Is the container named webapp?
+
+root@docker-host ~ ➜  docker run -d --name webapp nginx:1.28-alpine
+a6df89fdd1968fc4a60d67131f609917e3935e584ec78b06e935d31805d27516
+
+16.Cleanup: Delete all images on the host.
+
+Remove containers as necessary.
+
+root@docker-host ~ ➜  docker rm -f $(docker ps -aq)
+a6df89fdd196
+
+root@docker-host ~ ➜  docker rmi $(docker images -q)
+Untagged: postgres:latest
+Deleted: sha256:270cac6290e2dbf63201faa0e474bfa391fdeba5c439326904d43753b6f3387c
+Untagged: kodekloud/latest-webapp-mysql:latest
+Deleted: sha256:d5efbb3fe6216fe983fb21c0e300c353ae7a63190231808c3c07b7add604191e
+Untagged: nginx:alpine
+Deleted: sha256:feb6f75a08aa55b44576f98c15b8859819ecf54f3e4d2157f42c2d01cb58a3d2
+Untagged: nginx:latest
+Deleted: sha256:06aa3d7be10bc6307990c81bdca075793132e9163391abc370c015e344e23128
+Untagged: mysql:latest
+Deleted: sha256:c11782aa2a96624c1efc121768641d96954faa136d6aa82751b032d8c426ffbc
+Untagged: redis:latest
+Deleted: sha256:0c341492924cad6f5483f9133e43bd6c51ecdecbcadfac5b51657393b6a7936c
+Untagged: alpine:latest
+Deleted: sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
+Untagged: nginx:1.28-alpine
+Deleted: sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+Untagged: kodekloud/simple-webapp:latest
+Deleted: sha256:e5355b4c7804f453d79de75d6659ee702eeebbe30c02d9f1ce6602a96b576e57
