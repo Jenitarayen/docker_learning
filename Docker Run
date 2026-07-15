@@ -1,0 +1,50 @@
+Docker Run
+1.Let us first inspect the environment. How many containers are running on this host?
+
+Run the command:
+docker ps
+and count the number of running containers.
+Or use the newer equivalent command:
+docker container ls
+root@docker-host ~ ➜  docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED              STATUS              PORTS                                                                                    NAMES
+08cdb79cc04d   nginx:alpine   "/docker-entrypoint.…"   About a minute ago   Up About a minute   0.0.0.0:3456->3456/tcp, [::]:3456->3456/tcp, 0.0.0.0:38080->80/tcp, [::]:38080->80/tcp   dazzling_ganguly
+
+root@docker-host ~ ➜  docker container ls
+CONTAINER ID   IMAGE          COMMAND                  CREATED              STATUS              PORTS                                                                                    NAMES
+08cdb79cc04d   nginx:alpine   "/docker-entrypoint.…"   About a minute ago   Up About a minute   0.0.0.0:3456->3456/tcp, [::]:3456->3456/tcp, 0.0.0.0:38080->80/tcp, [::]:38080->80/tcp   dazzling_ganguly
+
+2.What is the image used by the container?
+
+Run the command docker ps or the newer equivalent docker container ls and look under the IMAGE column.
+
+3.How many unique ports are published on this container (count each port only once even if it appears for IPv4 and IPv6)?
+
+Use docker ps or the newer equivalent docker container ls and look at the PORTS column. Count each port pair (host:container) only once.
+
+CONTAINER ID   IMAGE          COMMAND                  CREATED              STATUS              PORTS                                                                                    NAMES
+08cdb79cc04d   nginx:alpine   "/docker-entrypoint.…"   About a minute ago   Up About a minute   0.0.0.0:3456->3456/tcp, [::]:3456->3456/tcp, 0.0.0.0:38080->80/tcp, [::]:38080->80/tcp   dazzling_ganguly
+
+4.Which of the following ports are mapped on the container side (i.e., exposed inside the container)?
+In the PORTS column of docker ps or the newer equivalent docker container ls, the format is hostPort->containerPort. The value after -> is the container (internal) port
+
+5.Which of the below ports are published on Host?
+Run the command docker ps or the equivalent docker container ls and look under the PORTS column. Ports on the left(before ->) are published on the host.
+
+6.Run an instance of kodekloud/simple-webapp:blue and name the container blue-app, mapping port 8080 on the container to port 38282 on the host
+
+Run the command: docker run -p 38282:8080 --name blue-app kodekloud/simple-webapp:blue
+You can run this container in the background after adding the -d flag.
+
+root@docker-host ~ ➜  docker run -d -p 38282:8080 --name blue-app kodekloud/simpl
+e-webapp:blue
+Unable to find image 'kodekloud/simple-webapp:blue' locally
+blue: Pulling from kodekloud/simple-webapp
+095a1a007cdb: Pull complete 
+f43c8e496f88: Pull complete 
+58ca939f7651: Pull complete 
+a6fc8a0deb7d: Pull complete 
+Digest: sha256:9caf15476dc60b77c7460791bea8ea5f6ca02b90199aabe088beea83bc943fe5
+Status: Downloaded newer image for kodekloud/simple-webapp:blue
+fb02de63c8ebfa5c0483ccb48b68105330c4096835833afa5c0f70a04e9b4b85
+
