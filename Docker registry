@@ -1,0 +1,228 @@
+
+Docker registry
+
+1.In this lab, we will explore some concepts related to Docker Registry and also practice setting up our own simple registry server.
+
+2.What is a Docker Registry?
+
+3.By default, the Docker engine interacts with?
+
+By default, the Docker Engine interacts with Docker Hub as its default Docker registry.
+So, when you run:
+docker pull nginx
+Docker actually pulls the image from Docker Hub unless another registry is specified.
+
+root@docker-host ~ ➜  docker pull nginx
+Using default tag: latest
+latest: Pulling from library/nginx
+062e450697fa: Pull complete 
+8d2092eabbc5: Pull complete 
+45ef33eb91c8: Pull complete 
+39694cde734e: Pull complete 
+0b19be717994: Pull complete 
+6a24a6ebcf30: Pull complete 
+3b9f3509a826: Pull complete 
+cd64a2895680: Download complete 
+29456554d205: Download complete 
+Digest: sha256:b5a9a3cfc86b81dd6f1458d53f2ad2b559cc255653d2efd6cacee5636bf2066f
+Status: Downloaded newer image for nginx:latest
+docker.io/library/nginx:latest
+
+4.DockerHub is a hosted registry solution by Docker Inc.
+Besides public and private repositories, it also provides:
+* Automated image builds
+* Integration with source control platforms like:
+    * GitHub
+    * Bitbucket
+* Webhooks
+* Image versioning and tagging
+* Team collaboration and access control
+* Vulnerability scanning (on some plans)
+
+5.Which command is used for login to a self-hosted registry?
+The command used to log in to a self-hosted Docker registry is:
+docker login <registry-url>/<server>
+6.Let's practice deploying a registry server on our own. Run a registry server with name equals to my-registry using registry:2 image with host port set to 5000, and restart policy set to always.
+Note: Registry server is exposed on port 5000 in the image.
+
+Here we are hosting our own registry using the open source Docker Registry.
+NOTE: You do not need to run docker login for this local registry setup because authentication is not configured. This registry allows for anonymous access.
+
+docker run -d -p 5000:5000 --restart=always --name my-registry registry:2
+
+root@docker-host ~ ✖ docker run -d -p 5000:5000 --restart=always --name my-registry registry:2
+Unable to find image 'registry:2' locally
+2: Pulling from library/registry
+6d464ea18732: Pull complete 
+44cf07d57ee4: Pull complete 
+8e82f80af0de: Pull complete 
+bbbdd6c6894b: Pull complete 
+3493bf46cdec: Pull complete 
+32a76c78501f: Download complete 
+b537bf6d1146: Download complete 
+Digest: sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373
+Status: Downloaded newer image for registry:2
+414b9872c10f2cdcd5f7e077522d3d31743baf146b63b295e348a158172a4d30
+
+7.Now, it's time to push some images to our registry server. Let's push two images for now: nginx:latest and httpd:latest.
+
+Note: Don't forget to pull them first.
+
+First for nginx, run:
+docker image pull nginx:latest
+ Then:
+docker image tag nginx:latest localhost:5000/nginx:latest
+ And, finally, push it using:
+docker image push localhost:5000/nginx:latest
+We will use the same steps for the second image:
+docker image pull httpd:latest
+docker image tag httpd:latest localhost:5000/httpd:latest
+docker image push localhost:5000/httpd:latest
+
+root@docker-host ~ ➜  docker image pull nginx:latest
+latest: Pulling from library/nginx
+45ef33eb91c8: Pull complete 
+3b9f3509a826: Pull complete 
+6a24a6ebcf30: Pull complete 
+8d2092eabbc5: Pull complete 
+0b19be717994: Pull complete 
+39694cde734e: Pull complete 
+062e450697fa: Pull complete 
+cd64a2895680: Download complete 
+29456554d205: Download complete 
+Digest: sha256:b5a9a3cfc86b81dd6f1458d53f2ad2b559cc255653d2efd6cacee5636bf2066f
+Status: Downloaded newer image for nginx:latest
+docker.io/library/nginx:latest
+
+root@docker-host ~ ➜  docker image tag nginx:latest localhost:5000/nginx:latest
+
+root@docker-host ~ ➜  docker image push localhost:5000/nginx:latest
+The push refers to repository [localhost:5000/nginx]
+6a24a6ebcf30: Pushed 
+0b19be717994: Pushed 
+45ef33eb91c8: Pushed 
+3b9f3509a826: Pushed 
+062e450697fa: Pushed 
+39694cde734e: Pushed 
+8d2092eabbc5: Pushed 
+latest: digest: sha256:0e768ba3686f7db3ab5687f1a65e641ef1e6d5b49e1d01a26d9f56d41e010a4f size: 2290
+
+i Info → Not all multiplatform-content is present and only the available single-platform image was pushed
+         sha256:b5a9a3cfc86b81dd6f1458d53f2ad2b559cc255653d2efd6cacee5636bf2066f -> sha256:0e768ba3686f7db3ab5687f1a65e641ef1e6d5b49e1d01a26d9f56d41e010a4f
+
+root@docker-host ~ ➜  docker image pull httpd:latest
+latest: Pulling from library/httpd
+39d55e966aeb: Pull complete 
+69b5b831a361: Pull complete 
+010f7d7e175f: Pull complete 
+4f4fb700ef54: Pull complete 
+ebd81352b960: Pull complete 
+507729664175: Download complete 
+c72742279dc1: Download complete 
+Digest: sha256:305fd8326a27a137fedb8900f26375699ab233cc37793f35cf5d7c65671fb252
+Status: Downloaded newer image for httpd:latest
+docker.io/library/httpd:latest
+
+root@docker-host ~ ➜  docker image tag httpd:latest localhost:5000/httpd:latest
+
+root@docker-host ~ ➜  docker image push localhost:5000/httpd:latest
+The push refers to repository [localhost:5000/httpd]
+69b5b831a361: Pushed 
+39d55e966aeb: Pushed 
+ebd81352b960: Pushed 
+010f7d7e175f: Pushed 
+4f4fb700ef54: Pushed 
+062e450697fa: Mounted from nginx 
+latest: digest: sha256:0e4cdd00727fc23f44447b65dfdf2958dc29f661fbf74404e0d2adbbac1b0892 size: 2093
+
+i Info → Not all multiplatform-content is present and only the available single-platform image was pushed
+         sha256:305fd8326a27a137fedb8900f26375699ab233cc37793f35cf5d7c65671fb252 -> sha256:0e4cdd00727fc23f44447b65dfdf2958dc29f661fbf74404e0d2adbbac1b0892
+
+
+8.To check the list of images pushed, use the following command:
+curl localhost:5000/v2/_catalog
+
+
+
+9.Let's remove all the dangling images we have locally.
+Use prune to remove them.
+How many images do we have now?
+Note: Make sure we don't have any running containers except our registry-sever.
+
+To prune:
+docker image prune -a
+To get a list of images in use:
+docker image ls
+
+root@docker-host ~ ➜  docker image prune -a
+WARNING! This will remove all images without at least one container associated to them.
+Are you sure you want to continue? [y/N] y
+Deleted Images:
+untagged: kodekloud/simple-webapp:latest
+deleted: sha256:e5355b4c7804f453d79de75d6659ee702eeebbe30c02d9f1ce6602a96b576e57
+untagged: alpine:latest
+deleted: sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
+deleted: sha256:4d889c14e7d5a73929ab00be2ef8ff22437e7cbc545931e52554a7b00e123d8b
+deleted: sha256:452bfe804076a924cc3982dfe3a7d760a387d8332fa32b8f7050d763895f901f
+untagged: mysql:latest
+deleted: sha256:c11782aa2a96624c1efc121768641d96954faa136d6aa82751b032d8c426ffbc
+deleted: sha256:f0f0d4591d23106312b3f7fbad8f4062a938a64e3e748c47b8c4347640265182
+deleted: sha256:6ff4662ac78b1775d53e7f1f1afb9ead0211c7ddc0a0e36282d31c13638c283b
+untagged: redis:latest
+deleted: sha256:0c341492924cad6f5483f9133e43bd6c51ecdecbcadfac5b51657393b6a7936c
+deleted: sha256:94ea4f5ccdaa6b154df99a792986ecb3ffbb3fe7722a197220477f1f3e65f9fe
+deleted: sha256:68968b74bd96d4e2db262b383f0dd4d1fa47ccbe3e93e1020018299abcc10e01
+untagged: ubuntu:latest
+deleted: sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64
+deleted: sha256:d31acef2a964b6df1f2b7e20a1525c4f2378024e087a4f8a8a9a4247e6a79573
+deleted: sha256:8c0eea215df160972de40666f5a19cd7ce005a1443e3ccd24794f0946cd92436
+untagged: localhost:5000/httpd:latest
+untagged: kodekloud/latest-webapp-mysql:latest
+deleted: sha256:d5efbb3fe6216fe983fb21c0e300c353ae7a63190231808c3c07b7add604191e
+untagged: httpd:latest
+deleted: sha256:305fd8326a27a137fedb8900f26375699ab233cc37793f35cf5d7c65671fb252
+deleted: sha256:0e4cdd00727fc23f44447b65dfdf2958dc29f661fbf74404e0d2adbbac1b0892
+deleted: sha256:3d08f095a785fa01bc58a9c2ba2bfa13fd6aefe17440135c19d7bc0060582db8
+untagged: nginx:latest
+untagged: postgres:latest
+deleted: sha256:270cac6290e2dbf63201faa0e474bfa391fdeba5c439326904d43753b6f3387c
+deleted: sha256:bfae840554bdbd4e9f8d097d8e23ffda8aac82866e04ea0d6bc09647234dd359
+deleted: sha256:be2fb4a6ba1e55882e1f0455a122103fce7d6aa6995f64885bee5b3d8c24a8e9
+untagged: localhost:5000/nginx:latest
+deleted: sha256:b5a9a3cfc86b81dd6f1458d53f2ad2b559cc255653d2efd6cacee5636bf2066f
+deleted: sha256:0e768ba3686f7db3ab5687f1a65e641ef1e6d5b49e1d01a26d9f56d41e010a4f
+deleted: sha256:2cfc5a070f013fdb5b61315cad72a9573824fbe58f0f82e8a73a2c1cf83ae4a3
+untagged: sha256:06aa3d7be10bc6307990c81bdca075793132e9163391abc370c015e344e23128
+deleted: sha256:06aa3d7be10bc6307990c81bdca075793132e9163391abc370c015e344e23128
+deleted: sha256:2f23d90e8640913ec33eed833e42c9d113fc3712c7cbc1bcc10dc16c22da7d79
+deleted: sha256:c1db6764130034f3c8abae5a43ba616af95485a08eb98daadfdedbcaf9ebc80b
+
+Total reclaimed space: 706.9MB
+
+root@docker-host ~ ➜  docker image ls
+                                                             i Info →   U  In Use
+IMAGE        ID             DISK USAGE   CONTENT SIZE   EXTRA
+registry:2   a3d8aaa63ed8       37.4MB         10.3MB    U   
+
+
+10.Now, we can pull images from our registry-server as well. Use docker pull [server-addr/image-name] to pull the images that we pushed earlier.
+In our case, we can use:
+docker pull localhost:5000/nginx
+
+11.Finally, let's clean up our registry.
+Stop and remove the my-registry container.
+
+Run the following command first:
+docker container stop my-registry
+ And then:
+docker container rm my-registry
+
+root@docker-host ~ ➜  docker container stop my-registry
+my-registry
+
+root@docker-host ~ ➜  docker container rm my-registry
+my-registry
+
+
+
+
