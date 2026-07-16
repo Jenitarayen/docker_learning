@@ -1,0 +1,130 @@
+Docker compose 
+
+1.First, create a Docker network named clicknet. This should be a bridge network.
+
+Run the following command in the terminal:
+docker network create clicknet
+root@docker-host ~ ➜  docker network create clicknet
+3bfe4d6996ed751cc2b30e058eafd757c17d54b47214f4be762e102076c60ac0
+
+2.Create a redis database container named redis using the image redis:alpine, running in the background.
+Attach it to the clicknet Docker network that you created in the previous task.
+
+Run the command:
+docker run -d \
+  --name redis \
+  --network clicknet \
+  redis:alpine
+
+root@docker-host ~ ➜  docker run -d \
+  --name redis \
+  --network clicknet \
+  redis:alpine
+Unable to find image 'redis:alpine' locally
+alpine: Pulling from library/redis
+eeab38c295a8: Pull complete 
+181cd4ffd5c9: Pull complete 
+05922fb64b47: Pull complete 
+5da8100e7e68: Pull complete 
+e6f31ffc071e: Pull complete 
+4f4fb700ef54: Pull complete 
+dc3229b74aab: Pull complete 
+40e61ab63796: Download complete 
+d4b045aad402: Download complete 
+Digest: sha256:9d317178eceac8454a2284a9e6df2466b93c745529947f0cd42a0fa9609d7005
+Status: Downloaded newer image for redis:alpine
+9735becd50aac0e4d28a9800a06059e323c86dfedca3c6817ac19c462a45a466
+
+3.Next, create a simple container named clickcounter using the image kodekloud/click-counter, attach it to the clickcounter network from the earlier task, and then expose it on host port 8085.
+
+The clickcounter app runs on port 5000.
+
+Run the following command in the terminal:
+docker run -d \
+  --name clickcounter \
+  --network clicknet \
+  -p 8085:5000 \
+  kodekloud/click-counter
+
+root@docker-host ~ ➜  docker run -d \
+  --name clickcounter \
+  --network clicknet \
+  -p 8085:5000 \
+  kodekloud/click-counter
+Unable to find image 'kodekloud/click-counter:latest' locally
+latest: Pulling from kodekloud/click-counter
+156f0b0493cb: Pull complete 
+ec9e91bed5a2: Pull complete 
+37ce6546d5dd: Pull complete 
+767433e10bb0: Pull complete 
+540db60ca938: Pull complete 
+473063430a4f: Pull complete 
+452c68a16ccd: Pull complete 
+a7ad1a75a999: Pull complete 
+4a41f7c94204: Pull complete 
+3fe82d8a2401: Pull complete 
+Digest: sha256:530e4532a718e8f5cbda05844a6c0638ebe8898fa4c4307ee6afbdd5d1f213db
+Status: Downloaded newer image for kodekloud/click-counter:latest
+fe737c5be98254965a1006354f5db8071eb886bf8c4070a2fe543dcfb45f47b1
+
+4.You can now access this application using the Click-Counter tab above the terminal.
+Refresh the page and see the count increase.
+
+5.Let's clean up the resources created in the previous steps.
+Delete the redis and clickcounter containers, alongwith the clicknet network you had created.
+
+To stop and delete the containers:
+docker rm -f redis
+docker rm -f clickcounter
+To delete the network:
+docker network rm clicknet
+
+
+root@docker-host ~ ➜  docker rm -f redis
+redis
+
+root@docker-host ~ ➜  docker rm -f clickcounter
+clickcounter
+
+root@docker-host ~ ➜  docker network rm clicknet
+clicknet
+
+6.You saw how we first created a Docker network and then attached our containers to it.
+Docker Compose simplifies this entire process by allowing us to define multiple containers, networks, ports, and environment variables inside a single compose.yaml file.
+We will see this in action in the next task.
+
+7.Create a compose.yaml file in the /root/clickcounter directory. Once done, bring up the stack using Docker Compose.
+The compose file should have the following exact specification:
+1. redis service - Use redis:alpine image name
+2. clickcounter service - Use the kodekloud/click-counter image name; the app runs on port 5000 and should be exposed on host port 8085.
+
+First, move to the clickcounter directory:
+cd /root/clickcounter
+Use the below compose file:
+services:
+  redis:
+    image: redis:alpine
+  clickcounter:
+    image: kodekloud/click-counter
+    ports:
+    - 8085:5000
+Then run the docker compose up -d command.
+The -d flag has been added to run the containers in the background.
+
+root@docker-host ~ ➜  cd /root/clickcounter
+
+root@docker-host ~/clickcounter ➜  vi compose.yaml
+
+root@docker-host ~/clickcounter ➜  docker compose up -d
+[+] up 3/3
+ ✔ Network clickcounter_default          Created                             0.1s
+ ✔ Container clickcounter-clickcounter-1 Started                            12.4s
+ ✔ Container clickcounter-redis-1        Started                            12.1s
+
+root@docker-host ~/clickcounter ➜  docker ps
+CONTAINER ID   IMAGE                     COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+18028565eb5c   redis:alpine              "docker-entrypoint.s…"   24 seconds ago   Up 12 seconds   6379/tcp                                      clickcounter-redis-1
+a261e6851f30   kodekloud/click-counter   "flask run"              24 seconds ago   Up 12 seconds   0.0.0.0:8085->5000/tcp, [::]:8085->5000/tcp   clickcounter-clickcounter-1
+
+8.Instead of manually creating networks and running several docker run commands, Compose automatically created the required network, connected the containers together, and started them in the correct order with a single command docker compose up.
+This makes multi-container applications easier to manage, reproduce, scale, and share across different environments.
