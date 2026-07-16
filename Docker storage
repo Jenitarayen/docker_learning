@@ -1,0 +1,144 @@
+Types of Docker Storage
+Type	Stored Where	Best For
+Volumes	/var/lib/docker/volumes	Production
+Bind Mounts	Any host directory	Development
+tmpfs Mounts	RAM	              Temporary data
+
+1.Where are the files related to Docker containers and images stored?
+
+Location where the files get stored is /var/lib/docker.
+
+2.Under which directory in /var/lib/docker/containers are the files related to the alpine-3 container image stored?
+
+root@docker-host ~ ➜  cd /var/lib/docker/containers
+
+root@docker-host lib/docker/containers ➜  ls
+14c7e1be055424652ebe130e94d865c3c5b9557d0d04994daa63ae712ff28a98
+907cd2ed4dc749e17e7c13b5fb5b4527a84e96d4ad495a14973f3b0b5d75b646
+f81312cf3613c0a604f93eab1a82ca405b3e7c8bd09ea7ddbec81bc247f12d2d
+
+3.Run a mysql container named mysql-db using the mysql image.
+Set the database password to db_pass123
+
+Note: Remember to run it in the detached mode.
+
+docker run -d --name mysql-db -e MYSQL_ROOT_PASSWORD=db_pass123 mysql
+
+root@docker-host lib/docker/containers ➜  docker run -d --name mysql-db -e MYSQL_ROOT_PASSWORD=db_pass123 mysql
+1804f08d227f3e68a634445250248dca865b2b6fb134cb228fdd114d672a390a
+
+4.We have just written some data into the database container.
+To view the information we wrote, run the get-data.sh script available in the /root directory.
+How many customers data have been written to the database?
+Command: bash get-data.sh
+
+root@docker-host lib/docker/containers ➜  cd 
+
+root@docker-host ~ ➜  bash get-data.sh
+mysql: [Warning] Using a password on the command line interface can be insecure.
+id      Name    Phone   Email
+1       Kareem  130-5655        Duis.volutpat.nunc@quamCurabitur.org
+2       Ruby    1-584-149-0770  Nulla.tempor@vitaeorciPhasellus.org
+3       Rowan   199-8663        consectetuer.adipiscing.elit@Sedmalesuada.co.uk
+4       Alisa   220-6017        elementum.sem.vitae@enimMauris.edu
+5       Ella    731-0337        fermentum@nec.net
+6       Tiger   658-4480        quis.diam@odiovelest.net
+7       Felix   1-274-848-3378  Mauris.vel@arcu.com
+8       Karina  1-390-796-3451  sagittis.semper@odioapurus.co.uk
+9       Davis   605-8539        venenatis.vel@risusDonecnibh.com
+10      Mohammad        1-590-174-1489  ornare.sagittis.felis@natoque.ca
+11      Zane    362-1770        Aenean.euismod@condimentum.co.uk
+12      Piper   1-231-386-6903  nunc.sed.pede@nascetur.ca
+13      Marshall        1-383-729-4990  Cras.interdum.Nunc@neceuismod.ca
+14      Zena    241-6641        Fusce.mollis.Duis@lobortis.org
+15      Abdul   1-748-387-9935  eget.lacus.Mauris@Crasvehicula.com
+16      Chase   1-401-241-9169  ante.dictum.mi@nascetur.org
+17      Zahir   921-0663        non@nonummyutmolestie.edu
+18      Brenda  1-691-909-5827  Quisque.ac@magnaCras.co.uk
+19      Laura   1-562-983-9565  Quisque.ornare.tortor@sollicitudinadipiscing.ca
+20      Madison 1-348-737-0587  Quisque.varius@Intinciduntcongue.org
+21      Tanek   991-6278        dignissim.magna@Pellentesqueutipsum.net
+22      Dakota  893-0792        Nullam.enim.Sed@nulla.net
+23      Boris   1-297-302-5792  non.sollicitudin@eleifendegestasSed.co.uk
+24      Celeste 723-6729        mauris.rhoncus@eunulla.edu
+25      Connor  1-203-901-7531  et@loremipsumsodales.edu
+26      Perry   1-756-607-9187  eros.turpis@tristiquepharetra.co.uk
+27      Hayfa   1-609-407-3019  non.lobortis.quis@malesuadafringilla.net
+28      Todd    343-0454        id.erat@arcu.org
+29      Fuller  881-7273        non.feugiat.nec@adipiscingelit.net
+30      Rama    1-927-605-0610  nonummy.ultricies.ornare@malesuada.co.uk
+
+root@docker-host ~ ➜  
+
+5.The database crashed. Are you able to view the data now?
+Use the same command to try and view data. Try to find the container.
+
+
+6.Damn! We didn't plan that well at all. Let's try again!!
+
+7.Run a mysql container again, but this time map a volume to the container so that the data stored by the container is stored at /opt/data on the host.
+Use the same name : mysql-db and same password: db_pass123 as before.
+
+Note: Mysql stores data at /var/lib/mysql inside the container.
+
+First create the directory:
+mkdir -p /opt/data
+Then, run the following command in the terminal:
+docker run \
+  --mount type=bind,source=/opt/data,target=/var/lib/mysql \
+  -d \
+  --name mysql-db \
+  -e MYSQL_ROOT_PASSWORD=db_pass123 \
+  mysql
+Or the easier one:
+docker run -v /opt/data:/var/lib/mysql -d --name mysql-db -e MYSQL_ROOT_PASSWORD=db_pass123 mysql
+
+
+root@docker-host ~ ➜  mkdir -p /opt/data
+
+root@docker-host ~ ➜  docker run \
+  --mount type=bind,source=/opt/data,target=/var/lib/mysql \
+  -d \
+  --name mysql-db \
+  -e MYSQL_ROOT_PASSWORD=db_pass123 \
+  mysql
+b5ac9c071562090270b91bb60db903a963b878927c4fc6e3d2a01919bb09898a
+
+8.We have now re-written data again. Run the get-data.sh script to ensure data is present.
+Command: bash get-data.sh
+
+9.Disaster strikes.. again! And the database crashed again. But this time we have the data stored at /opt/data directory. Re-deploy a new mysql instance using the same options as before:
+* Name: mysql-db
+* MYSQL_ROOT_PASSWORD: db_pass123
+* Image: mysql
+* Volume mapping: /opt/data on host to /var/lib/mysql on container
+Just run the same command as before. Here it is for your convenience:
+docker run \
+  --mount type=bind,source=/opt/data,target=/var/lib/mysql \
+  -d \
+  --name mysql-db \
+  -e MYSQL_ROOT_PASSWORD=db_pass123 \
+  mysql
+Or:
+docker run -v /opt/data:/var/lib/mysql -d --name mysql-db -e MYSQL_ROOT_PASSWORD=db_pass123 mysql
+
+root@docker-host ~ ➜  docker run \
+  --mount type=bind,source=/opt/data,target=/var/lib/mysql \
+  -d \
+  --name mysql-db \
+  -e MYSQL_ROOT_PASSWORD=db_pass123 \
+  mysql
+cf0715f93f972d662ea41800260e033f40a17b66cab9e9961135dd86292e0213
+
+10.Fetch data and make sure it is present.
+command: bash get-data.sh
+
+11.Notice that we didn't have to write the data again - it was already saved to the host directory /opt/data during the previous container run.
+When we ran the container this time, the data was picked up from the same path automatically.
+This is how Docker volumes give us data persistence!
+
+
+
+
+
+
